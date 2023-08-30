@@ -22,6 +22,37 @@ class _MyAppState extends State<MyApp> {
   double? latitude;
   double? longitude;
 
+  //get location from device
+  handleLocation() async {
+    var status = await Permission.location.request();
+    if (status.isGranted) {
+      print('Location permission accepted');
+    } else {
+      print('Location permission denied');
+    }
+    setState(() {
+      _isLoading = true;
+    });
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      latitude = position.latitude;
+      longitude = position.longitude;
+    });
+
+    await postData();
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    print("Latitude: $latitude, Longitude: $longitude");
+  }
+
+  //Post location to api
   Future<void> postData() async {
     setState(() {
       _isLoading = true;
@@ -63,37 +94,10 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  handleLocation() async {
-    var status = await Permission.location.request();
-    if (status.isGranted) {
-      print('Location permission accepted');
-    } else {
-      print('Location permission denied');
-    }
-    setState(() {
-      _isLoading = true;
-    });
-
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
-    setState(() {
-      latitude = position.latitude;
-      longitude = position.longitude;
-    });
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    print("Latitude: $latitude, Longitude: $longitude");
-  }
-
   @override
   void initState() {
     handleLocation();
-    postData();
+    
     super.initState();
   }
 
@@ -126,10 +130,9 @@ class _MyAppState extends State<MyApp> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await handleLocation();
-                  postData();
+                   handleLocation();
                 },
-                child: const Text('Track Location'),
+                child: const Text('Track Location and Update Api '),
               ),
             ],
           ),
